@@ -1,0 +1,39 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "package*.json"
+      - ".github/workflows/frontend-ci.yml"
+  push:
+    branches: [develop, main]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci --if-present
+
+      - name: Run Linter
+        run: npm run lint --workspace=apps/web --if-present
+
+      - name: Run Typecheck
+        run: npm run typecheck --workspace=apps/web --if-present
+
+      - name: Run Unit Tests
+        run: npm run test --workspace=apps/web --if-present
