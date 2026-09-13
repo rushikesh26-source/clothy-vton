@@ -1,0 +1,50 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Node / TypeScript
+node_modules/
+dist/
+build/
+.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+coverage/
+.nyc_output/
+
+# Python / PyTorch / AI
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.pt
+*.pth
+*.bin
+*.onnx
+*.safetensors
+checkpoints/
+weights/
+runs/
+wandb/
+
+# Temp Media
+temp_uploads/
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# Docker & OS
+.DS_Store
+Thumbs.db
+*.log
+docker/volumes/
