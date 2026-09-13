@@ -1,0 +1,23 @@
+name: Security & Secret Scan
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+
+jobs:
+  trufflehog:
+    name: Secret Leak Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
