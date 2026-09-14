@@ -1,8 +1,4 @@
-import { useState } from 'react';
-
 function App() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
       {/* Navigation Bar */}
