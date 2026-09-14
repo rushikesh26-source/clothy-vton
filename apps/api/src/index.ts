@@ -1,23 +1,59 @@
-import express, { Request, Response } from "express";
-import dotenv from "dotenv";
-import path from "path";
-import { db } from "./db";
-// Load environment variables from the monorepo root
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+import express from 'react'; // Wait, let's use standard imports.
+import express, { Request, Response } from 'express';
+import cors from 'cors';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import { eq } from 'drizzle-orm';
+import * as schema from './db/schema.js';
+import 'dotenv/config';
+
+// Initialize Database Connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || "postgresql://clothy_admin:clothy_secret_password@localhost:5432/clothy_db",
+});
+const db = drizzle(pool, { schema });
 
 const app = express();
-const port = process.env.API_PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-app.get("/health", (req: Request, res: Response) => {
-  res.json({
-    status: "healthy",
-    service: "clothy-api",
-    timestamp: new Date().toISOString(),
-  });
+// Multi-Tenant Middleware: Enforce Store ID on all catalog requests
+const requireStoreId = (req: Request, res: Response, next: Function) => {
+  const storeId = req.headers['x-store-id'];
+  if (!storeId || typeof storeId !== 'string') {
+    return res.status(400).json({ error: 'Missing or invalid x-store-id header' });
+  }
+  // In a real app, you would validate this against the authenticated user's permissions
+  req.storeId = storeId; 
+  next();
+};
+
+// --- ROUTES ---
+
+// Health Check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'Clothy API V1' });
 });
 
-app.listen(port, () => {
-  console.log(`[Clothy API] Server running on http://localhost:${port}`);
+// Get Active Products for a Store
+app.get('/api/products', requireStoreId, async (req: Request, res: Response) => {
+  try {
+    const storeProducts = await db.query.products.findMany({
+      where: eq(schema.products.storeId, req.storeId),
+      orderBy: (products, { desc }) => [desc(products.createdAt)],
+    });
+    
+    res.json({ data: storeProducts });
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Start Server
+app.listen(PORT, () => {
+  console.log(`Clothy API running on http://localhost:${PORT}`);
 });
